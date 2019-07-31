@@ -58,7 +58,7 @@ func user_infoTask(w http.ResponseWriter, req *http.Request) {
 }
 
 
-func conAndGetDatas(limit, page int) [][]string {
+func conAndGetDatas(limit, page int) []map[string]string {
 	db :=connSql()
 	trueSqlLen:=getSqlLen(db)
 	//trueMaxPageL:=getTrueMaxPage(trueSqlLen,limit)
@@ -66,8 +66,9 @@ func conAndGetDatas(limit, page int) [][]string {
 	return getSqlDataForIndex(db,firstElement,lastElement)
 }
 
-func getSqlDataForIndex(db sql.DB,start,end int) ([][]string) {
-	var datas [][]string = make([][]string,0)
+func getSqlDataForIndex(db sql.DB,start,end int) ([]map[string]string) {
+	var data map[string]string
+	var datas []map[string]string
 	var sql string = "SELECT * FROM `user_info` LIMIT"+" "+strconv.Itoa(start)+","+strconv.Itoa(end-start)
 	rows,err:=db.Query(sql)
 	if err != nil {
@@ -77,22 +78,22 @@ func getSqlDataForIndex(db sql.DB,start,end int) ([][]string) {
 
 
 	for rows.Next() {
+		data = make(map[string]string)
 		var id int
 		var name string
 		var telephone string
 		var age int
 		err = rows.Scan(&id,&name,&telephone,&age)
-		var tmpArry []string
-		tmpArry = append(tmpArry,strconv.Itoa(id),name,telephone,strconv.Itoa(age))
-		datas = append(datas,tmpArry)
-	}
 
-	for i := 0; i < len(datas); i++ {//本地输出获取到的数据
-		for j := 0; j < len(datas[i]); j++ {
-			fmt.Print(datas[i][j]+" ")
-		}
-		fmt.Println()
+		data["id"] = strconv.Itoa(id)
+		data["name"] = name
+		data["telephone"] = telephone
+		data["age"] = strconv.Itoa(age)
+
+		datas = append(datas,data)
 	}
+	fmt.Println(datas)
+
 	return datas
 }
 
