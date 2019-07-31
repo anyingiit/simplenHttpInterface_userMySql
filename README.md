@@ -1,0 +1,2 @@
+# simplenHttpInterface_userMySql
+一个简单的项目,实现了一个简单的http接口,在这个过程中使用mysql数据库进行实时查询
