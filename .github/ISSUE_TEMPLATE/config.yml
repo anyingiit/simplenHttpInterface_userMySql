@@ -1,0 +1,9 @@
+# Source: GitHub issue template chooser (official) — https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://github.com/anyingiit/simplenHttpInterface_userMySql/discussions
+    about: Please ask and answer questions in GitHub Discussions.
+  - name: Report a security vulnerability
+    url: https://github.com/anyingiit/simplenHttpInterface_userMySql/security/advisories/new
+    about: Please report security vulnerabilities privately, not in public issues.

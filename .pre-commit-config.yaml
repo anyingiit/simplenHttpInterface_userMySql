@@ -1,0 +1,12 @@
+# Source: pre-commit and pre-commit-hooks (MIT) — https://pre-commit.com
+# Optional: run `pre-commit install` once to run these checks before each commit.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files

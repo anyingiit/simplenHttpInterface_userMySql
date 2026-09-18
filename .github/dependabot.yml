@@ -1,0 +1,8 @@
+# Source: GitHub Dependabot (official) — https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+# Add an entry for each package manager your project uses (see the link above).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

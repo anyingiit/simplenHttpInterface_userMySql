@@ -1,0 +1,4 @@
+# Source: GitHub sponsor button (official) — https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+# Optional. Add your usernames or links to show a "Sponsor" button on the repository page.
+github: # Up to 4 GitHub Sponsors usernames, for example [octocat]
+custom: # Up to 4 custom URLs, for example ["https://example.com/donate"]

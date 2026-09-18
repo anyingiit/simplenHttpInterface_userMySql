@@ -1,0 +1,58 @@
+# Source: GitHub starter workflow "Simple workflow" (MIT) — https://github.com/actions/starter-workflows/blob/main/ci/blank.yml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# The workflow token is read-only by default.
+# Grant extra permissions to a single job only when that job needs them.
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check that actions are pinned to full commit SHAs
+        shell: bash
+        run: |
+          # Every `uses:` must reference a full 40-character commit SHA followed by a
+          # version comment, for example:
+          #   uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+          # Local actions (./path) and Docker images (docker://) are skipped.
+          set -euo pipefail
+          unpinned="$(grep -RnE '^[[:space:]]*(-[[:space:]]+)?uses:' .github/workflows \
+            | grep -vE "uses:[[:space:]]*['\"]?(\./|docker://)" \
+            | grep -vE "@[0-9a-f]{40}['\"]?[[:space:]]+#[[:space:]]*v?[0-9]" || true)"
+          if [ -n "$unpinned" ]; then
+            echo "::error::Pin these actions to a full-length commit SHA with a version comment:"
+            echo "$unpinned"
+            exit 1
+          fi
+          echo "All actions are pinned to full-length commit SHAs."
+
+      # Add your project's linters below this line.
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Replace the step below with your project's test command. Pin any setup
+      # action you add to a full commit SHA, like the checkout step above.
+      - name: Run tests
+        run: echo "No tests yet. Replace this step with your project's test command."
