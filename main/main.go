@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -15,34 +16,34 @@ func main() {
 }
 func WebserBase() {
 	fmt.Println("This webserver running!")
-	http.HandleFunc("/user_info",user_infoTask)
-	err:=http.ListenAndServe(":8000",nil)
-	if err!=nil {
-		println("ListenServer Error!"+err.Error())
+	http.HandleFunc("/user_info", user_infoTask)
+	err := http.ListenAndServe(":8000", nil)
+	if err != nil {
+		println("ListenServer Error!" + err.Error())
 	}
 }
 func user_infoTask(w http.ResponseWriter, req *http.Request) {
 	fmt.Println("user_infoTask running!")
-	time.Sleep(time.Second/2)
+	time.Sleep(time.Second / 2)
 	req.ParseForm()
-	param_limit,existLimit:=req.Form["limit"]
-	param_page,existPage:=req.Form["page"]
+	param_limit, existLimit := req.Form["limit"]
+	param_page, existPage := req.Form["page"]
 	if !(existLimit && existPage) {
-		fmt.Fprintf(w,"请勿非法访问")
+		fmt.Fprintf(w, "请勿非法访问")
 		return
 	}
-	baseJsonBean,data:=newBaseJsonBean()
-	page,err:=strconv.Atoi(param_page[0])
+	baseJsonBean, data := newBaseJsonBean()
+	page, err := strconv.Atoi(param_page[0])
 	if err != nil {
-		println("获取page失败!",err.Error())
+		println("获取page失败!", err.Error())
 	}
-	limit,err:=strconv.Atoi(param_limit[0])
+	limit, err := strconv.Atoi(param_limit[0])
 	if err != nil {
-		println("获取limit失败!",err.Error())
+		println("获取limit失败!", err.Error())
 
 	}
-	fmt.Println("page:",page,"limit:",limit)//打印获取到的数据
-	data.Data = conAndGetDatas(limit,page)
+	fmt.Println("page:", page, "limit:", limit) //打印获取到的数据
+	data.Data = conAndGetDatas(limit, page)
 	data.Limit = limit
 	data.Page = page
 	baseJsonBean.Code = 0
@@ -50,32 +51,30 @@ func user_infoTask(w http.ResponseWriter, req *http.Request) {
 	baseJsonBean.Data = data
 
 	//返回数据
-	bytes,err:=json.Marshal(baseJsonBean)
+	bytes, err := json.Marshal(baseJsonBean)
 	if err != nil {
-		println("转换为Json格式失败!",err.Error())
+		println("转换为Json格式失败!", err.Error())
 	}
-	fmt.Fprint(w,string(bytes))
+	fmt.Fprint(w, string(bytes))
 }
-
 
 func conAndGetDatas(limit, page int) []map[string]string {
-	db :=connSql()
-	trueSqlLen:=getSqlLen(db)
+	db := connSql()
+	trueSqlLen := getSqlLen(db)
 	//trueMaxPageL:=getTrueMaxPage(trueSqlLen,limit)
-	firstElement,lastElement:=getFirstElementAndLastElement(limit,page,trueSqlLen)
-	return getSqlDataForIndex(db,firstElement,lastElement)
+	firstElement, lastElement := getFirstElementAndLastElement(limit, page, trueSqlLen)
+	return getSqlDataForIndex(db, firstElement, lastElement)
 }
 
-func getSqlDataForIndex(db sql.DB,start,end int) ([]map[string]string) {
+func getSqlDataForIndex(db sql.DB, start, end int) []map[string]string {
 	var data map[string]string
 	var datas []map[string]string
-	var sql string = "SELECT * FROM `user_info` LIMIT"+" "+strconv.Itoa(start)+","+strconv.Itoa(end-start)
-	rows,err:=db.Query(sql)
+	var sql string = "SELECT * FROM `user_info` LIMIT" + " " + strconv.Itoa(start) + "," + strconv.Itoa(end-start)
+	rows, err := db.Query(sql)
 	if err != nil {
-		println("获取数组长度时发生错误!查询或获取长度失败.",err.Error())
+		println("获取数组长度时发生错误!查询或获取长度失败.", err.Error())
 	}
 	//构造scanArgs、values两个数组，scanArgs的每个值指向values相应值的地址
-
 
 	for rows.Next() {
 		data = make(map[string]string)
@@ -83,81 +82,91 @@ func getSqlDataForIndex(db sql.DB,start,end int) ([]map[string]string) {
 		var name string
 		var telephone string
 		var age int
-		err = rows.Scan(&id,&name,&telephone,&age)
+		err = rows.Scan(&id, &name, &telephone, &age)
 
 		data["id"] = strconv.Itoa(id)
 		data["name"] = name
 		data["telephone"] = telephone
 		data["age"] = strconv.Itoa(age)
 
-		datas = append(datas,data)
+		datas = append(datas, data)
 	}
 	fmt.Println(datas)
 
 	return datas
 }
 
-func getFirstElementAndLastElement(limit,page,dbLenght int) (FirstElement,LastElement int){
-	var trueMaxPage int = getTrueMaxPage(dbLenght,limit)
-	var trueLastElement,trueFirstElement int
-	if (page<=trueMaxPage&&page>0){//检查limit和page是否非法
-		if (page==trueMaxPage&&dbLenght%limit!=0){//如果用户想获取最后一页数据并且数据不能被正好显示完
-			trueLastElement = dbLenght;
-			trueFirstElement = (page-1)*limit;
+func getFirstElementAndLastElement(limit, page, dbLenght int) (FirstElement, LastElement int) {
+	var trueMaxPage int = getTrueMaxPage(dbLenght, limit)
+	var trueLastElement, trueFirstElement int
+	if page <= trueMaxPage && page > 0 { //检查limit和page是否非法
+		if page == trueMaxPage && dbLenght%limit != 0 { //如果用户想获取最后一页数据并且数据不能被正好显示完
+			trueLastElement = dbLenght
+			trueFirstElement = (page - 1) * limit
 			//trueFirstElement = trueLastElement - (trueLastElement-(page-1)*limit); //最后一个元素位置-(最后一个与元素位置-((页数-1)*每页显示个数)  最后一个元素位置-(最后一个元素位置-上一页最后元素位置)
-		}else {//否则正常输出
-			trueLastElement = page*limit;
-			trueFirstElement = trueLastElement-limit;
+		} else { //否则正常输出
+			trueLastElement = page * limit
+			trueFirstElement = trueLastElement - limit
 		}
-		return trueFirstElement,trueLastElement //返回数据开始和结束角标
-	}else {
+		return trueFirstElement, trueLastElement //返回数据开始和结束角标
+	} else {
 		println("获取数据开始和结束角标失败!输入的limit或者page过大或不是正整数.")
 	}
-	return -1,-1
+	return -1, -1
 }
 func getTrueMaxPage(dbLenght, limit int) (trueMaxPage int) { //获取表单数据真实长度
-	if dbLenght%limit ==0 {
-		trueMaxPage=dbLenght/ limit
-	}else {
-		trueMaxPage=dbLenght/limit +1
+	if dbLenght%limit == 0 {
+		trueMaxPage = dbLenght / limit
+	} else {
+		trueMaxPage = dbLenght/limit + 1
 	}
 	return trueMaxPage
 }
-func connSql() sql.DB{
-	db,err:=sql.Open("mysql","REMOVED-USE-MYSQL_DSN-ENV")
+
+// connSql opens the MySQL connection.
+//
+// The data source name used to be a string literal right here -- a real
+// username and password, in a public repository. The database was a local
+// throwaway one, so nothing was at risk, but a connection string sitting in
+// source is the kind of thing a reader draws conclusions from, and the habit
+// is worth not having. It now comes from MYSQL_DSN.
+func connSql() sql.DB {
+	dsn := os.Getenv("MYSQL_DSN")
+	if dsn == "" {
+		println("MYSQL_DSN is not set; the database connection will fail. " +
+			"Export it as user:password@tcp(host:port)/database before running.")
+	}
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		println("ConnSql Error!",err.Error())
+		println("ConnSql Error!", err.Error())
 	}
 	return *db
 }
 func getSqlLen(db sql.DB) int {
 	var dbLenght int
-	err:=db.QueryRow("select count(1) from `user_info`").Scan(&dbLenght)
+	err := db.QueryRow("select count(1) from `user_info`").Scan(&dbLenght)
 	if err != nil {
-		println("获取数组长度时发生错误,查询或获取长度失败!",err.Error())
+		println("获取数组长度时发生错误,查询或获取长度失败!", err.Error())
 	}
 	return dbLenght
 }
 
 type BaseJsonBean struct {
-	Code int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data *Data `json:"data"`
+	Data    *Data  `json:"data"`
 }
 
 type Data struct {
-	Limit int `json:"limit"`
-	Page int `json:"page"`
-	Data interface{} `json:"data"`
+	Limit int         `json:"limit"`
+	Page  int         `json:"page"`
+	Data  interface{} `json:"data"`
 }
-
-
-
 
 /*func NewBaseJsonBean() *BaseJsonBean {
 	return &BaseJsonBean{}
 }*/
 
-func newBaseJsonBean() (*BaseJsonBean,*Data) {
-	return &BaseJsonBean{},&Data{}
+func newBaseJsonBean() (*BaseJsonBean, *Data) {
+	return &BaseJsonBean{}, &Data{}
 }
